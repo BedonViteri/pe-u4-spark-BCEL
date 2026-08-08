@@ -1,0 +1,234 @@
+\documentclass[11pt,a4paper]{article}
+
+% ============ PAQUETES EXIGIDOS POR LA GUÍA ============
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}       % ecuaciones (equation, align)
+\usepackage{graphicx}      % \includegraphics
+\usepackage{booktabs}      % tablas profesionales
+\usepackage{siunitx}       % unidades (tiempo en segundos, etc.)
+\usepackage{listings}      % código fuente
+\usepackage[style=ieee]{biblatex}  % bibliografía estilo IEEE
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\addbibresource{references_U4.bib}
+
+% Configuración básica de listings para Python
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{orange},
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny
+}
+
+\title{Comprobación experimental de la Ley de Amdahl \\ mediante Apache Spark \\
+\large Dominio de referencia: BCEL --- SGA Escuela Provincias Unidas \\
+(Microservicio Docente)}
+
+\author{
+Keyla Bedón \and Juliana Emanuel \and Harol Vinueza \and Pedro Castro \\
+\small Aplicaciones Distribuidas (ISR-701) --- Unidad 4 \\
+\small Facultad de Ciencias de la Computación --- Universidad Técnica Estatal de Quevedo \\
+\small Código de actividad: GA-SUM-05 / PE-U4 --- Período académico 2026--2027 PPA
+}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+% ======================================================
+% RESUMEN
+% ======================================================
+\begin{abstract}
+% TODO (Keyla): resumen de ~150-200 palabras. Debe cubrir: objetivo del
+% experimento, dominio de referencia (BCEL, microservicio Docente),
+% dataset usado (OULAD), metodología (pandas vs PySpark, 5 transformaciones),
+% y el hallazgo principal (fracción serial observada, speedup obtenido).
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ======================================================
+% 1. INTRODUCCIÓN
+% ======================================================
+\section{Introducción}
+% TODO (Keyla): contexto general -- por qué el procesamiento distribuido
+% importa, qué es la Ley de Amdahl en una frase, y cómo se conecta con
+% el dominio BCEL (microservicio Docente). Referenciar la sección de
+% Fundamento Teórico y de Procedimiento que siguen.
+
+% ======================================================
+% 2. FUNDAMENTO TEÓRICO (Sección 5 de la guía)
+% ======================================================
+\section{Fundamento teórico}
+
+\subsection{Fundamentos de paralelismo y Ley de Amdahl}
+\label{sec:amdahl}
+% TODO (Juliana) -- Commit 1
+% Mínimo 300 palabras. Ver Guia_Juliana.md para el contenido completo
+% y las ecuaciones numeradas listas para copiar.
+
+\subsection{Paradigma MapReduce y Apache Hadoop}
+\label{sec:mapreduce}
+% TODO (Juliana) -- Commit 2
+% Mínimo 300 palabras. Ver Guia_Juliana.md.
+
+\subsection{Apache Spark: arquitectura y modelo de programación}
+\label{sec:spark}
+% TODO (Harol) -- Commit 1
+% Mínimo 300 palabras.
+
+\subsection{Computación en la nube: modelos y proveedores}
+\label{sec:cloud}
+% TODO (Harol) -- Commit 2
+% Mínimo 300 palabras.
+
+% ======================================================
+% 3. PROCEDIMIENTO APLICADO (Sección 7 de la guía, narrado)
+% ======================================================
+\section{Procedimiento aplicado}
+% TODO (Keyla) -- Commit 3
+% Narrar en prosa (no solo pegar código) los Pasos 1-4 realmente
+% ejecutados en el notebook: preparación del entorno y dataset,
+% implementación pandas, implementación PySpark (incluir aquí la
+% configuración efectiva de Spark obtenida con
+% spark.sparkContext.getConf().getAll()), y protocolo de medición.
+
+\subsection{Entorno y conjunto de datos}
+% TODO (Keyla): tabla booktabs con fuente/URL/licencia/fecha/registros
+% (copiar de data/README_dataset.md)
+
+\subsection{Evidencia de ejecución: Spark UI}
+% TODO (Keyla): insertar aquí la captura de evidencia/spark_ui_t3.png
+\begin{figure}[h]
+  \centering
+  % \includegraphics[width=0.9\textwidth]{../evidencia/spark_ui_t3.png}
+  \caption{DAG y stages del job de T3 (join) en la interfaz de Spark (Spark UI)}
+  \label{fig:spark_ui}
+\end{figure}
+% No olvidar referenciar esta figura desde el texto con \ref{fig:spark_ui}
+
+% ======================================================
+% 4. RESULTADOS (Sección 2.3/2.4 de la rúbrica)
+% ======================================================
+\section{Resultados}
+
+\subsection{Tiempos de ejecución}
+% TODO (Pedro) -- Commit 1
+% Tabla booktabs + siunitx con tiempos pandas vs pyspark por transformación.
+% Ejemplo de estructura:
+%
+% \begin{table}[h]
+% \centering
+% \begin{tabular}{lS[table-format=2.4]S[table-format=2.4]S[table-format=1.3]}
+% \toprule
+% {Transformación} & {pandas (\si{\second})} & {PySpark (\si{\second})} & {Speedup} \\
+% \midrule
+% T1 & ... & ... & ... \\
+% T2 & ... & ... & ... \\
+% T3 & ... & ... & ... \\
+% T4 & ... & ... & ... \\
+% T5 & ... & ... & ... \\
+% \bottomrule
+% \end{tabular}
+% \caption{Tiempos medianos de ejecución (pandas vs. PySpark) por transformación}
+% \label{tab:tiempos}
+% \end{table}
+
+\subsection{Figuras}
+% TODO (Pedro) -- Commit 1
+% Insertar las 3 figuras generadas por src/graficas.py, con \caption,
+% \label, y un párrafo de interpretación propio de cada una.
+
+\begin{figure}[h]
+  \centering
+  % \includegraphics[width=0.8\textwidth]{../resultados/figuras/fig1_barras.png}
+  \caption{Tiempo de ejecución: pandas vs. PySpark por transformación}
+  \label{fig:barras}
+\end{figure}
+% Interpretación de la Figura \ref{fig:barras}: ...
+
+\begin{figure}[h]
+  \centering
+  % \includegraphics[width=0.8\textwidth]{../resultados/figuras/fig2_speedup.png}
+  \caption{Speedup experimental vs. curva teórica de Amdahl (T3 - join)}
+  \label{fig:speedup}
+\end{figure}
+% Interpretación de la Figura \ref{fig:speedup}: ...
+
+\begin{figure}[h]
+  \centering
+  % \includegraphics[width=0.8\textwidth]{../resultados/figuras/fig3_eficiencia.png}
+  \caption{Eficiencia del paralelismo E(N) = S(N)/N (T3 - join)}
+  \label{fig:eficiencia}
+\end{figure}
+% Interpretación de la Figura \ref{fig:eficiencia}: ...
+
+% ======================================================
+% 5. ANÁLISIS CRÍTICO
+% ======================================================
+\section{Análisis crítico}
+% TODO (todo el equipo): discutir el umbral de volumen de datos a partir
+% del cual Spark resulta rentable frente a pandas en el dominio BCEL,
+% conectando con las preguntas del Anexo A.
+
+% ======================================================
+% 6. PREGUNTAS DE ANÁLISIS (Anexo A)
+% ======================================================
+\section{Preguntas de análisis}
+
+\subsection*{Pregunta 1}
+% TODO (Juliana) -- Commit 3. Mínimo 200 palabras.
+
+\subsection*{Pregunta 2}
+% TODO (Pedro) -- Commit 2. Mínimo 200 palabras.
+
+\subsection*{Pregunta 3}
+% TODO (Pedro) -- Commit 2. Mínimo 200 palabras.
+
+\subsection*{Pregunta 4}
+% TODO (Harol) -- Commit 3. Mínimo 200 palabras.
+
+% ======================================================
+% 7. CONCLUSIONES INDIVIDUALES
+% ======================================================
+\section{Conclusiones individuales}
+
+\subsection*{Keyla Bedón}
+% TODO: mínimo 150 palabras.
+
+\subsection*{Juliana Emanuel}
+% TODO: mínimo 150 palabras.
+
+\subsection*{Harol Vinueza}
+% TODO: mínimo 150 palabras.
+
+\subsection*{Pedro Castro}
+% TODO: mínimo 150 palabras.
+
+% ======================================================
+% 8. DECLARACIÓN DE USO DE IA GENERATIVA
+% ======================================================
+\section{Declaración de uso de inteligencia artificial generativa}
+% TODO (Keyla, con aporte de todos): completar conforme a los
+% lineamientos de la asignatura -- herramienta, propósito y secciones
+% en las que se usó. Ser honestos y específicos.
+
+% ======================================================
+% BIBLIOGRAFÍA
+% ======================================================
+\newpage
+\printbibliography
+
+\end{document}

@@ -1,0 +1,33 @@
+# Datos pesados (el dataset OULAD real NO se sube al repo, se descarga con la celda del notebook)
+oulad_raw/
+oulad.zip
+*.csv.gz
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+venv/
+env/
+
+# LaTeX - archivos auxiliares de compilación
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Spark
+spark-warehouse/
+metastore_db/
+derby.log
