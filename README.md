@@ -9,7 +9,7 @@
 
 | Integrante | Rol |
 |---|---|
-| Keyla Bedón | Líder — coordinación, repositorio, notebook, compilación final |
+| Keyla Bedón | Coordinación, repositorio, notebook, compilación final |
 | Juliana Emanuel | Marco teórico (Amdahl/Gustafson, MapReduce/Hadoop), Pregunta 1 |
 | Harol Vinueza | Marco teórico (Spark, Cloud Computing), Pregunta 4 |
 | Pedro Castro | Resultados, figuras, Preguntas 2-3, evidencia y video |
