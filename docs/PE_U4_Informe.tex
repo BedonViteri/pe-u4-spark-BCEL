@@ -50,10 +50,29 @@ Keyla Bedón \and Juliana Emanuel \and Harol Vinueza \and Pedro Castro \\
 % RESUMEN
 % ======================================================
 \begin{abstract}
-% TODO (Keyla): resumen de ~150-200 palabras. Debe cubrir: objetivo del
-% experimento, dominio de referencia (BCEL, microservicio Docente),
-% dataset usado (OULAD), metodología (pandas vs PySpark, 5 transformaciones),
-% y el hallazgo principal (fracción serial observada, speedup obtenido).
+Este informe presenta la comprobación experimental de la Ley de Amdahl mediante
+la implementación de un pipeline de cinco transformaciones de datos (filtrado,
+agregación, join, columna derivada y top-N) ejecutado en dos motores: pandas
+(secuencial) y Apache Spark/PySpark (distribuido). Como dominio de referencia
+se eligió BCEL - SGA Escuela Provincias Unidas, específicamente el
+microservicio Docente, que gestiona asistencias y calificaciones por
+estudiante y curso. Dado que este microservicio aún no acumula el volumen
+mínimo de 500{,}000 registros exigido por la práctica, se utilizó el dataset
+público OULAD (Open University Learning Analytics Dataset, 10{,}655{,}280
+registros, licencia CC-BY 4.0), estructuralmente equivalente al flujo de
+interacciones estudiante-curso que generaría BCEL a escala. Los tiempos de
+ejecución se midieron con cinco repeticiones por transformación
+(\texttt{time.perf\_counter()}, mediana reportada), y la transformación T3
+(join) se escaló con 1, 2 y 4 núcleos reales (\texttt{local[N]}) para el
+análisis de paralelismo. El hallazgo principal es que, en el entorno de
+ejecución utilizado (Google Colab, 2 núcleos, dataset que cabe en memoria
+para pandas), PySpark resultó más lento que pandas en las cinco
+transformaciones, con speedups entre 0.043 y 0.467. La fracción serial
+observada en T3 ($p=2.5186$) resulta fuera del dominio válido del modelo de
+Amdahl, lo que se discute en detalle en la Sección~\ref{sec:amdahl} y en la
+Pregunta~1 del Anexo A, evidenciando que el costo de inicialización y
+coordinación de Spark supera el beneficio del paralelismo cuando el volumen
+de datos y el número de núcleos disponibles son limitados.
 \end{abstract}
 
 \tableofcontents
@@ -63,10 +82,33 @@ Keyla Bedón \and Juliana Emanuel \and Harol Vinueza \and Pedro Castro \\
 % 1. INTRODUCCIÓN
 % ======================================================
 \section{Introducción}
-% TODO (Keyla): contexto general -- por qué el procesamiento distribuido
-% importa, qué es la Ley de Amdahl en una frase, y cómo se conecta con
-% el dominio BCEL (microservicio Docente). Referenciar la sección de
-% Fundamento Teórico y de Procedimiento que siguen.
+El procesamiento de datos a gran escala plantea una pregunta central para
+cualquier sistema que crece con el tiempo: ¿en qué momento conviene dejar de
+procesar los datos en una sola máquina y pasar a un motor distribuido? La Ley
+de Amdahl, presentada en la Sección~\ref{sec:amdahl}, ofrece un marco teórico
+para responder esa pregunta, al establecer un límite matemático sobre cuánto
+puede acelerarse una tarea agregando más unidades de procesamiento, en función
+de la fracción de esa tarea que no puede paralelizarse.
+
+Este informe comprueba esa ley de forma experimental, implementando el mismo
+pipeline de cinco transformaciones en pandas (secuencial) y en PySpark
+(distribuido), y midiendo el speedup real obtenido frente al predicho por el
+modelo teórico. Como dominio de referencia se eligió BCEL --- SGA Escuela
+Provincias Unidas, en particular el microservicio Docente, responsable de
+gestionar asistencias y calificaciones por estudiante y curso dentro de la
+arquitectura distribuida del sistema (Django REST + gRPC, esquema
+\texttt{sga\_docente} sobre PostgreSQL en AWS EC2). Este microservicio genera,
+por cada evento de asistencia o evaluación, un registro estructuralmente
+idéntico al que constituye la tabla \texttt{studentVle} del dataset OULAD
+utilizado en esta práctica, lo que permite proyectar el comportamiento que
+tendría BCEL al escalar su volumen de datos.
+
+El resto del documento se organiza así: la Sección~\ref{sec:amdahl} y
+subsecciones desarrollan el fundamento teórico de la Unidad 4; la
+Sección~\ref{sec:procedimiento} narra el procedimiento experimental aplicado;
+la Sección de Resultados presenta los tiempos medidos y las figuras generadas;
+y la Sección de Preguntas de análisis discute, entre otros puntos, por qué el
+speedup obtenido resultó menor a 1 en las cinco transformaciones.
 
 % ======================================================
 % 2. FUNDAMENTO TEÓRICO (Sección 5 de la guía)
@@ -398,9 +440,7 @@ La Figura~\ref{fig:eficiencia} muestra que la eficiencia $E(N) = S(N)/N$ cae rá
 % 5. ANÁLISIS CRÍTICO
 % ======================================================
 \section{Análisis crítico}
-% TODO (todo el equipo): discutir el umbral de volumen de datos a partir
-% del cual Spark resulta rentable frente a pandas en el dominio BCEL,
-% conectando con las preguntas del Anexo A.
+En las cinco transformaciones medidas, PySpark nunca superó a pandas (speedup real entre 0.043 y 0.467), ya que su costo fijo inicializar la JVM, construir el DAG y coordinar el shuffle es prácticamente constante sin importar el volumen de datos, mientras que pandas opera directamente en memoria sin esa capa de coordinación; con solo 2 núcleos reales en Colab, además, ese costo fijo no tuvo suficiente paralelismo para diluirse. Esto define un punto de cruce: existe un tamaño de dataset a partir del cual el tiempo de pandas (que crece de forma más que proporcional al superar la memoria disponible) supera al overhead fijo de Spark. Para BCEL, mientras el microservicio Docente procese asistencias y calificaciones de una escuela individual (miles de registros por período), pandas seguirá siendo más eficiente; Spark solo se justificaría en un escenario multi-institucional que acumulara años de datos de múltiples escuelas (decenas de millones de registros, orden de magnitud de OULAD), idealmente sobre un clúster real con más núcleos. En conjunto, el experimento no invalida la utilidad de Spark, sino que delimita las condiciones —volumen de datos y recursos disponibles— bajo las cuales su adopción se justifica, un matiz que la Ley de Amdahl no captura por sí sola al asumir implícitamente que el sistema paralelo es más rápido desde el inicio.
 
 % ======================================================
 % 6. PREGUNTAS DE ANÁLISIS (Anexo A)
@@ -499,9 +539,6 @@ tolerante a fallos (por ejemplo, un bucket S3, dado que BCEL ya opera sobre
 AWS EC2) el progreso de lectura del offset de Kafka y el estado de las
 agregaciones, garantizando semántica \textit{exactly-once} incluso si el
 proceso de streaming falla y se reinicia \cite{zaharia2016}.
-
-% TODO: cuando Keyla tenga la tabla de tiempos final, reemplazar esto con
-% los valores reales y calcular (1-p) y S(infinito).
 
 En el caso del join, se espera que esta fracción serial sea más grande que
 en T1 o T2, porque el join necesita un shuffle: los datos se tienen que
@@ -633,9 +670,34 @@ adoptarlo.
 % 8. DECLARACIÓN DE USO DE IA GENERATIVA
 % ======================================================
 \section{Declaración de uso de inteligencia artificial generativa}
-% TODO (Keyla, con aporte de todos): completar conforme a los
-% lineamientos de la asignatura -- herramienta, propósito y secciones
-% en las que se usó. Ser honestos y específicos.
+\section{Declaración de uso de inteligencia artificial generativa}
+
+En cumplimiento de los lineamientos de la asignatura, se declara el uso de
+herramientas de inteligencia artificial generativa durante la elaboración de
+este informe:
+
+\begin{itemize}
+  \item \textbf{Herramienta utilizada:} Claude (Anthropic).
+  \item \textbf{Propósito:} orientación y consulta durante la redacción del
+        informe, no generación autónoma de contenido. La herramienta se
+        utilizó para resolver dudas puntuales sobre estructura, para
+        sugerir cómo condensar y ordenar mejor ideas que el equipo ya había
+        desarrollado, y para apoyar la revisión de redacción y claridad en
+        distintas secciones.
+  \item \textbf{Secciones donde se utilizó:} Sección~5 (Análisis crítico),
+        como apoyo para sintetizar en un párrafo un análisis más extenso
+        redactado previamente por el equipo, con fines de discusión interna
+        del grupo.
+  \item \textbf{Alcance de la intervención:} los hallazgos, cálculos,
+        interpretaciones y conclusiones del experimento fueron desarrollados
+        íntegramente por el equipo a partir de los datos medidos
+        (Tabla~\ref{tab:tiempos}) y del marco teórico de la
+        Sección~\ref{sec:amdahl}. La IA no propuso ideas ni resultados
+        nuevos, sino que orientó la forma de presentar contenido ya
+        producido por el grupo. Todo texto sugerido fue revisado, editado y
+        validado por los integrantes antes de su inclusión final en el
+        informe.
+\end{itemize}
 
 % ======================================================
 % BIBLIOGRAFÍA
