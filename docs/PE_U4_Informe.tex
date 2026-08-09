@@ -289,26 +289,22 @@ resto de servicios AWS ya utilizados por el sistema.
 \section{Resultados}
 
 \subsection{Tiempos de ejecución}
-% TODO (Pedro) -- Commit 1
-% Tabla booktabs + siunitx con tiempos pandas vs pyspark por transformación.
-% Ejemplo de estructura:
-%
-% \begin{table}[h]
-% \centering
-% \begin{tabular}{lS[table-format=2.4]S[table-format=2.4]S[table-format=1.3]}
-% \toprule
-% {Transformación} & {pandas (\si{\second})} & {PySpark (\si{\second})} & {Speedup} \\
-% \midrule
-% T1 & ... & ... & ... \\
-% T2 & ... & ... & ... \\
-% T3 & ... & ... & ... \\
-% T4 & ... & ... & ... \\
-% T5 & ... & ... & ... \\
-% \bottomrule
-% \end{tabular}
-% \caption{Tiempos medianos de ejecución (pandas vs. PySpark) por transformación}
-% \label{tab:tiempos}
-% \end{table}
+\begin{table}[h]
+\centering
+\begin{tabular}{lS[table-format=2.4]S[table-format=2.4]S[table-format=1.4]}
+\toprule
+{Transformación} & {pandas (\si{\second})} & {PySpark (\si{\second})} & {Speedup} \\
+\midrule
+T1 -- Filtrado                & 0.7727  & 17.8291 & 0.0429 \\
+T2 -- Agrupación + agregación & 2.3462  & 24.7722 & 0.1021 \\
+T3 -- Join de DataFrames      & 13.5601 & 28.4488 & 0.4675 \\
+T4 -- Columna derivada        & 5.9430  & 28.0218 & 0.2227 \\
+T5 -- Ordenamiento + top-N    & 9.5726  & 32.6862 & 0.3013 \\
+\bottomrule
+\end{tabular}
+\caption{Tiempos medianos de ejecución (mediana de 5 repeticiones) en pandas vs. PySpark con 4 executors. Fuente: \texttt{resultados/figuras/tiempos\_resumen.csv}.}
+\label{tab:tiempos}
+\end{table}
 
 \subsection{Figuras}
 % TODO (Pedro) -- Commit 1
