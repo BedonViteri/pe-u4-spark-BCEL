@@ -139,8 +139,60 @@ conjunto completo.
 
 \subsection{Computación en la nube: modelos y proveedores}
 \label{sec:cloud}
-% TODO (Harol) -- Commit 2
-% Mínimo 300 palabras.
+
+El Instituto Nacional de Estándares y Tecnología de Estados Unidos (NIST)
+define la computación en la nube como un modelo que permite acceso ubicuo,
+conveniente y bajo demanda a un conjunto compartido de recursos informáticos
+configurables (redes, servidores, almacenamiento, aplicaciones y servicios),
+que pueden aprovisionarse y liberarse con un esfuerzo mínimo de gestión o de
+interacción con el proveedor \cite{mell2011}. Esta definición identifica cinco
+características esenciales: autoservicio bajo demanda, donde el usuario
+aprovisiona recursos sin intervención humana del proveedor; acceso amplio a
+la red, disponible desde plataformas heterogéneas; \textit{pooling} de
+recursos, que multiplexa capacidad física entre varios consumidores mediante
+un modelo multiusuario; elasticidad rápida, que permite escalar recursos casi
+instantáneamente según la demanda; y servicio medido, donde el consumo se
+monitorea y factura de forma transparente \cite{mell2011}.
+
+Sobre esa base, el NIST distingue tres modelos de servicio, a los que la
+industria ha añadido un cuarto: \textit{Infrastructure as a Service} (IaaS),
+donde el proveedor entrega recursos de cómputo, almacenamiento y red en bruto,
+y el cliente gestiona el sistema operativo y las aplicaciones; \textit{Platform
+as a Service} (PaaS), que añade un entorno de ejecución gestionado sobre el
+cual el cliente despliega su código sin administrar la infraestructura
+subyacente; \textit{Software as a Service} (SaaS), donde el cliente consume
+una aplicación completa gestionada íntegramente por el proveedor; y
+\textit{Function as a Service} (FaaS), un modelo de cómputo sin servidor donde
+el proveedor ejecuta funciones individuales en respuesta a eventos, facturando
+únicamente por el tiempo de ejecución real \cite{burns2024}.
+
+Para el procesamiento distribuido de datos, los tres proveedores dominantes
+ofrecen servicios administrados equivalentes que abstraen la gestión manual
+del clúster: Amazon EMR (\textit{Elastic MapReduce}) en AWS, Azure HDInsight
+en Microsoft Azure, y Google Cloud Dataproc en GCP. Los tres permiten
+aprovisionar clústeres de Spark y Hadoop bajo demanda, integrarse con el
+almacenamiento de objetos del proveedor (S3, Blob Storage o Cloud Storage,
+respectivamente) y escalar el número de nodos según la carga, delegando en el
+proveedor tareas como el parcheo del sistema operativo o la configuración de
+red del clúster \cite{burns2024}.
+
+Finalmente, cuando el procesamiento por lotes debe combinarse con datos que
+llegan en tiempo real, surgen dos patrones arquitectónicos complementarios.
+La arquitectura Lambda mantiene dos rutas de procesamiento paralelas: una capa
+por lotes que recalcula vistas completas sobre el histórico con alta
+precisión, y una capa de velocidad que procesa el flujo reciente con baja
+latencia para cubrir el retraso de la capa por lotes, fusionando ambas en una
+capa de servicio. La arquitectura Kappa simplifica este esquema eliminando la
+capa por lotes: todo el procesamiento, tanto histórico como en tiempo real, se
+ejecuta sobre un único motor de streaming, reprocesando el flujo completo
+desde el log de eventos cuando se requiere recalcular una vista
+\cite{burns2024}. En el dominio BCEL, el microservicio Docente ya opera sobre
+AWS EC2 con PostgreSQL; si el volumen de asistencias y calificaciones
+creciera hasta justificar un motor distribuido de forma sostenida, la
+migración natural sería hacia Amazon EMR, evitando la gestión manual de un
+clúster Spark autoadministrado y aprovechando la integración directa con el
+resto de servicios AWS ya utilizados por el sistema.
+
 
 % ======================================================
 % 3. PROCEDIMIENTO APLICADO (Sección 7 de la guía, narrado)
