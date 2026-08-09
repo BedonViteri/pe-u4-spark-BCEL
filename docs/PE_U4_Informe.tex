@@ -311,32 +311,35 @@ resto de servicios AWS ya utilizados por el sistema.
 % \end{table}
 
 \subsection{Figuras}
-% TODO (Pedro) -- Commit 1
-% Insertar las 3 figuras generadas por src/graficas.py, con \caption,
-% \label, y un párrafo de interpretación propio de cada una.
 
 \begin{figure}[h]
   \centering
-  % \includegraphics[width=0.8\textwidth]{../resultados/figuras/fig1_barras.png}
+  \includegraphics[width=0.8\textwidth]{../resultados/figuras/fig1_barras.png}
   \caption{Tiempo de ejecución: pandas vs. PySpark por transformación}
   \label{fig:barras}
 \end{figure}
-% Interpretación de la Figura \ref{fig:barras}: ...
+
+La Figura~\ref{fig:barras} muestra la diferencia de tiempos entre pandas y PySpark en las cinco transformaciones. En todos los casos PySpark quedó por encima de pandas, incluso en operaciones sencillas como T1 (filtrado), donde la diferencia es de más de 20x. Esto refleja el costo fijo de inicializar la SparkSession y planificar el DAG, que no se compensa con un dataset de este tamaño.
 
 \begin{figure}[h]
   \centering
-  % \includegraphics[width=0.8\textwidth]{../resultados/figuras/fig2_speedup.png}
+  \includegraphics[width=0.8\textwidth]{../resultados/figuras/fig2_speedup.png}
   \caption{Speedup experimental vs. curva teórica de Amdahl (T3 - join)}
   \label{fig:speedup}
 \end{figure}
-% Interpretación de la Figura \ref{fig:speedup}: ...
+
+La Figura~\ref{fig:speedup} contrasta el speedup real de T3 contra la curva teórica de Amdahl. La curva teórica crece hacia su límite superior, pero la medición real se mantiene claramente por debajo de 1, lo que indica que la sobrecarga de shuffle y de coordinación entre executors supera la ganancia de paralelizar el join sobre este volumen de datos.
 
 \begin{figure}[h]
   \centering
-  % \includegraphics[width=0.8\textwidth]{../resultados/figuras/fig3_eficiencia.png}
+  \includegraphics[width=0.8\textwidth]{../resultados/figuras/fig3_eficiencia.png}
   \caption{Eficiencia del paralelismo E(N) = S(N)/N (T3 - join)}
   \label{fig:eficiencia}
 \end{figure}
+
+La Figura~\ref{fig:eficiencia} muestra que la eficiencia $E(N) = S(N)/N$ cae rápidamente al aumentar el número de executors, en lugar de mantenerse cerca de 1 como ocurriría en un paralelismo ideal. Esta caída confirma que el trabajo adicional de coordinación crece más rápido que el trabajo útil repartido, en línea con la ecuación~\eqref{eq:eficiencia} presentada en la Sección~\ref{sec:amdahl}.
+
+
 % Interpretación de la Figura \ref{fig:eficiencia}: ...
 
 % ======================================================
