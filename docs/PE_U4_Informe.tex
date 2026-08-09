@@ -358,21 +358,45 @@ La Figura~\ref{fig:eficiencia} muestra que la eficiencia $E(N) = S(N)/N$ cae rá
 % TODO (Pedro) -- Commit 2. Mínimo 200 palabras.
 
 \subsection*{Pregunta 3}
-El speedup máximo que se puede lograr depende de la fracción serial
-$(1-p)$ de la tarea, según la Ley de Amdahl (Ecuación~\ref{eq:amdahl}):
-cuando $N$ tiende a infinito, $S(N)$ se acerca a $1/(1-p)$, y ya no importa
-cuántos procesadores más se agreguen. Ese valor hay que sacarlo con la
-fracción serial que de verdad se midió en T3 (el join), no con un número
-inventado.
+Spark Structured Streaming es la API de streaming de Apache Spark que trata un
+flujo de datos como una tabla que crece de forma continua, permitiendo aplicar
+el mismo modelo de DataFrames usado en el procesamiento por lotes a datos que
+llegan en tiempo real \cite{chambers2018}. Si el pipeline de BCEL --- en
+particular el microservicio Docente --- necesitara procesar asistencias y
+calificaciones a medida que se registran, en lugar de en cargas periódicas por
+lotes, la arquitectura se diseñaría de la siguiente manera.
 
-Esa fracción se calcula comparando el tiempo de T3 en pandas contra el
-tiempo de T3 en PySpark con distintos executors (1, 2 y 4). Con el speedup
-real $S_{obs}(N) = T_{pandas}/T_{spark}(N)$, se despeja $(1-p)$:
+Como \textbf{fuente} (\textit{source}), el microservicio Docente publicaría
+cada evento de asistencia o calificación en un tópico de Apache Kafka en el
+momento en que el docente lo registra en la API REST, en lugar de escribirlo
+únicamente en PostgreSQL. Structured Streaming leería ese tópico mediante el
+conector \texttt{kafka} como fuente continua, tratando cada mensaje nuevo como
+una fila adicional en el DataFrame no acotado.
 
-\begin{equation}
-1 - p = \frac{\dfrac{1}{S_{obs}(N)} - \dfrac{1}{N}}{1 - \dfrac{1}{N}}
-\label{eq:fraccion-serial}
-\end{equation}
+Sobre ese flujo se aplicarían las mismas transformaciones ya implementadas en
+este pipeline (filtrado, agregación por curso, cálculo del índice de riesgo
+académico), expresadas con la misma API de DataFrames que en el procesamiento
+por lotes \cite{armbrust2015}, lo que permite reutilizar directamente la
+lógica de T1, T2 y T4 sin reescribirla para streaming.
+
+Como \textbf{sink}, el resultado se escribiría en dos destinos: una tabla
+agregada en PostgreSQL (o en un almacén analítico separado) para consulta por
+parte del microservicio Docente, y opcionalmente un tópico de alertas para
+notificar en tiempo casi real cuando un estudiante cruce el umbral de riesgo
+académico calculado en T4.
+
+En cuanto a la \textbf{política de triggers}, se usaría un
+\texttt{ProcessingTime} de intervalo corto (por ejemplo, cada 30 segundos),
+suficiente para el volumen de eventos de un sistema académico, evitando el
+costo de un trigger continuo (\textit{continuous processing}) que exige
+garantías de latencia más estrictas que las que este dominio requiere.
+
+Finalmente, las \textbf{garantías de entrega} se asegurarían mediante
+\textit{checkpointing}: Structured Streaming registra en almacenamiento
+tolerante a fallos (por ejemplo, un bucket S3, dado que BCEL ya opera sobre
+AWS EC2) el progreso de lectura del offset de Kafka y el estado de las
+agregaciones, garantizando semántica \textit{exactly-once} incluso si el
+proceso de streaming falla y se reinicia \cite{zaharia2016}.
 
 % TODO: cuando Keyla tenga la tabla de tiempos final, reemplazar esto con
 % los valores reales y calcular (1-p) y S(infinito).
