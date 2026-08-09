@@ -118,14 +118,35 @@ vaya más rápido; Gustafson sirve cuando el volumen de datos también va
 creciendo, como pasaría con el histórico de calificaciones de BCEL si cada
 período académico se le sigue agregando más información.
 
-
-
-
-
 \subsection{Paradigma MapReduce y Apache Hadoop}
 \label{sec:mapreduce}
-% TODO (Juliana) -- Commit 2
-% Mínimo 300 palabras. Ver Guia_Juliana.md.
+MapReduce es un modelo para procesar datos grandes repartiéndolos entre
+varias máquinas, propuesto por Dean y Ghemawat en 2004 \cite{dean2008}. La
+idea es simple: una función \texttt{map} que transforma cada dato de
+entrada en pares clave-valor, y una función \texttt{reduce} que junta todos
+los valores que comparten la misma clave para sacar el resultado final.
+Entre las dos fases, el sistema reordena y agrupa automáticamente esos
+pares por clave, en lo que se llama \textit{shuffle}.
+
+Apache Hadoop es la implementación más conocida de este modelo, y usa su
+propio sistema de archivos distribuido, HDFS \cite{white2015}. HDFS guarda
+copias de cada bloque de datos en varias máquinas, así que si un nodo se
+cae no se pierde información, y además cada máquina puede procesar los
+datos que ya tiene guardados localmente en vez de tener que pedirlos por
+red todo el tiempo \cite{white2015}.
+
+El problema es que MapReduce obliga a escribir el resultado de cada job en
+disco antes de poder empezar el siguiente, incluso si varios jobs son en
+realidad parte de un mismo proceso más grande. Eso genera mucha lectura y
+escritura a disco que no siempre es necesaria, y se nota sobre todo en
+algoritmos que repiten el mismo cálculo varias veces, donde ese ir y venir
+a disco termina siendo la parte que más tiempo consume \cite{ahmed2020}. Si
+pensamos en BCEL, un cálculo que uniera calificaciones con matrículas (como
+hacemos en T3) tendría que guardar ese resultado en HDFS antes de poder
+usarlo en cualquier cálculo siguiente, como sacar un promedio por período.
+Justo esa limitación es la que Spark resuelve manteniendo los datos en
+memoria en vez de escribirlos a disco entre cada paso, como se explica en
+la siguiente sección.
 
 \subsection{Apache Spark: arquitectura y modelo de programación}
 \label{sec:spark}
