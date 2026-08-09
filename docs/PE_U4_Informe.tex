@@ -565,13 +565,6 @@ AWS EC2) el progreso de lectura del offset de Kafka y el estado de las
 agregaciones, garantizando semántica \textit{exactly-once} incluso si el
 proceso de streaming falla y se reinicia \cite{zaharia2016}.
 
-En el caso del join, se espera que esta fracción serial sea más grande que
-en T1 o T2, porque el join necesita un shuffle: los datos se tienen que
-reordenar y mover entre executors según la clave antes de poder unirse, y
-eso implica coordinación entre nodos que no se acelera tan fácil solo
-agregando más executors, a diferencia de un filtro que cada executor puede
-resolver por su cuenta sin depender de los demás.
-
 \subsection*{Pregunta 4}
 
 Spark supera a MapReduce en cargas de trabajo iterativas principalmente por
