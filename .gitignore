@@ -31,3 +31,5 @@ Thumbs.db
 spark-warehouse/
 metastore_db/
 derby.log
+data/pandas/T3.csv 
+data/pandas/T4.csv 

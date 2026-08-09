@@ -1,0 +1,21 @@
+code_module,code_presentation,id_student,id_site,date,sum_click,gender,region,highest_education,imd_band,age_band,num_of_prev_attempts,studied_credits,disability,final_result,activity_type,week_from,week_to,indice_riesgo_academico
+GGG,2014J,602360,897071,-1,1,F,Yorkshire Region,A Level or Equivalent,0-10%,0-35,2,30,N,Fail,resource,,,218.33333333333331
+GGG,2014J,593658,897145,-3,1,F,South Region,No Formal quals,90-100%,0-35,2,30,N,Pass,resource,,,218.33333333333331
+GGG,2014J,546724,896974,229,1,F,London Region,Lower Than A Level,50-60%,0-35,2,30,N,Pass,oucontent,,,218.33333333333331
+GGG,2014J,470900,896943,173,1,F,Yorkshire Region,Lower Than A Level,40-50%,35-55,2,30,N,Pass,homepage,,,218.33333333333331
+EEE,2014J,510435,832780,32,1,M,Wales,Lower Than A Level,50-60%,0-35,2,30,N,Withdrawn,url,,,218.33333333333331
+EEE,2014J,602150,832661,24,1,M,London Region,A Level or Equivalent,20-30%,0-35,2,30,N,Withdrawn,oucontent,5.0,5.0,218.33333333333331
+EEE,2014J,445049,832568,2,1,M,North Western Region,A Level or Equivalent,30-40%,0-35,1,30,Y,Pass,forumng,,,208.33333333333334
+GGG,2014J,2053521,896978,75,1,F,South West Region,A Level or Equivalent,20-30%,35-55,1,30,Y,Pass,oucontent,,,208.33333333333334
+CCC,2014J,342799,909019,59,1,M,Wales,Lower Than A Level,0-10%,0-35,1,30,Y,Pass,forumng,,,208.33333333333334
+CCC,2014J,556521,909298,0,1,M,East Anglian Region,A Level or Equivalent,50-60%,0-35,1,30,Y,Withdrawn,resource,,,208.33333333333334
+CCC,2014J,165733,909013,59,1,M,Scotland,A Level or Equivalent,20-30%,0-35,1,30,Y,Withdrawn,homepage,,,208.33333333333334
+CCC,2014J,537654,909095,59,1,M,North Region,A Level or Equivalent,40-50%,0-35,1,30,Y,Pass,quiz,,,208.33333333333334
+GGG,2014J,600320,896970,172,1,F,West Midlands Region,Lower Than A Level,40-50%,35-55,1,30,Y,Pass,oucontent,,,208.33333333333334
+GGG,2014J,595941,896943,170,1,F,South East Region,Lower Than A Level,60-70%,35-55,1,30,Y,Pass,homepage,,,208.33333333333334
+CCC,2014J,505815,909013,-10,1,M,Yorkshire Region,A Level or Equivalent,40-50%,0-35,1,30,Y,Withdrawn,homepage,,,208.33333333333334
+CCC,2014J,266558,947016,107,1,M,Yorkshire Region,A Level or Equivalent,30-40%,0-35,1,30,Y,Fail,resource,,,208.33333333333334
+CCC,2014J,2421961,909272,102,1,M,Yorkshire Region,A Level or Equivalent,30-40%,0-35,1,30,N,Fail,resource,,,191.66666666666669
+CCC,2014J,465732,909093,18,1,M,West Midlands Region,A Level or Equivalent,50-60%,0-35,1,30,N,Fail,quiz,,,191.66666666666669
+CCC,2014J,471580,909013,97,1,M,Yorkshire Region,Lower Than A Level,80-90%,0-35,1,30,N,Pass,homepage,,,191.66666666666669
+CCC,2014J,560784,909013,101,1,M,South Region,Lower Than A Level,80-90%,0-35,1,30,N,Fail,homepage,,,191.66666666666669
