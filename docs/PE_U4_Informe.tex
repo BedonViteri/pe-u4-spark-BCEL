@@ -353,7 +353,33 @@ plan de ejecución en lugar de ejecutar operación por operación
 % TODO: mínimo 150 palabras.
 
 \subsection*{Harol Vinueza}
-% TODO: mínimo 150 palabras.
+
+Esta práctica me permitió comprender de forma concreta por qué Apache Spark
+se convirtió en el estándar de facto para el procesamiento distribuido de
+datos, más allá de la definición abstracta que suele darse en clase. Trabajar
+la arquitectura de Spark en profundidad --- el rol del driver, el cluster
+manager y los executors, y sobre todo el mecanismo de lineage de los RDD ---
+me hizo entender que la tolerancia a fallos y el rendimiento no son
+propiedades independientes: el diseño que permite reconstruir datos perdidos
+sin releer todo el dataset es el mismo que permite mantener resultados
+intermedios en memoria y evitar la sobrecarga de E/S que castiga a MapReduce
+en cargas iterativas. Profundizar en la evaluación perezosa y en cómo el
+optimizador Catalyst reordena las operaciones también me cambió la forma en
+que voy a escribir código con DataFrames de aquí en adelante, sabiendo que el
+orden en que escribo las transformaciones no necesariamente es el orden en
+que se ejecutan.
+
+Trabajar la sección de computación en la nube, en particular la comparación
+entre EMR, HDInsight y Dataproc, me hizo ver con claridad la ruta de
+crecimiento natural para un sistema como BCEL: hoy el microservicio Docente
+corre sobre una instancia EC2 con PostgreSQL, una arquitectura suficiente
+para el volumen actual, pero que tendría un techo claro si el número de
+períodos académicos y estudiantes históricos creciera de forma sostenida. Ver
+en la práctica, con el dataset OULAD, cómo cambia el tiempo de ejecución
+entre pandas y PySpark según el tamaño y el tipo de operación, me deja una
+intuición mucho más sólida sobre cuándo migrar de un procesamiento síncrono y
+centralizado a un motor distribuido realmente vale la sobrecarga que implica
+adoptarlo.
 
 \subsection*{Pedro Castro}
 % TODO: mínimo 150 palabras.
