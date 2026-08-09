@@ -359,7 +359,31 @@ resto de servicios AWS ya utilizados por el sistema.
 % TODO (Pedro) -- Commit 2. Mínimo 200 palabras.
 
 \subsection*{Pregunta 3}
-% TODO (Juliana) -- Commit 2. Mínimo 200 palabras.
+El speedup máximo que se puede lograr depende de la fracción serial
+$(1-p)$ de la tarea, según la Ley de Amdahl (Ecuación~\ref{eq:amdahl}):
+cuando $N$ tiende a infinito, $S(N)$ se acerca a $1/(1-p)$, y ya no importa
+cuántos procesadores más se agreguen. Ese valor hay que sacarlo con la
+fracción serial que de verdad se midió en T3 (el join), no con un número
+inventado.
+
+Esa fracción se calcula comparando el tiempo de T3 en pandas contra el
+tiempo de T3 en PySpark con distintos executors (1, 2 y 4). Con el speedup
+real $S_{obs}(N) = T_{pandas}/T_{spark}(N)$, se despeja $(1-p)$:
+
+\begin{equation}
+1 - p = \frac{\dfrac{1}{S_{obs}(N)} - \dfrac{1}{N}}{1 - \dfrac{1}{N}}
+\label{eq:fraccion-serial}
+\end{equation}
+
+% TODO: cuando Keyla tenga la tabla de tiempos final, reemplazar esto con
+% los valores reales y calcular (1-p) y S(infinito).
+
+En el caso del join, se espera que esta fracción serial sea más grande que
+en T1 o T2, porque el join necesita un shuffle: los datos se tienen que
+reordenar y mover entre executors según la clave antes de poder unirse, y
+eso implica coordinación entre nodos que no se acelera tan fácil solo
+agregando más executors, a diferencia de un filtro que cada executor puede
+resolver por su cuenta sin depender de los demás.
 
 \subsection*{Pregunta 4}
 
