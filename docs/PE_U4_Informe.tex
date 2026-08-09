@@ -497,8 +497,11 @@ Spark no resulta rentable a esta escala de datos y de recursos
 computacionales.
 
 \subsection*{Pregunta 2}
-% TODO (Pedro) -- Commit 2. Mínimo 200 palabras.
+Los resultados obtenidos en esta práctica muestran que las cinco transformaciones ejecutadas con PySpark tuvieron un speedup menor que 1, es decir, todas fueron más lentas que su versión en pandas. La transformación más castigada fue T1 (filtrado por condición compuesta), con un speedup de apenas 0.043, mientras que la menos afectada fue T3 (el join), con un speedup de 0.47. Este resultado, lejos de ser un error, refleja de forma clara el comportamiento esperado de Spark en volúmenes de datos pequeños: la sobrecarga fija que impone el motor supera cualquier ganancia por paralelismo.
 
+Ese overhead viene de varios componentes concretos. Primero, la inicialización de la SparkSession y el arranque del driver y los executors toman varios segundos incluso antes de procesar un solo registro. Segundo, cada transformación debe pasar por la planificación del DAG y la generación del plan físico por parte del optimizador Catalyst, algo que en pandas no existe. Tercero, la serialización de los datos entre el driver y los executors, y sobre todo el shuffle que ocurre en operaciones como el join de T3, mueven información entre nodos y añaden un costo que en pandas simplemente no aplica porque todo corre en memoria dentro del mismo proceso. En un dataset del tamaño que usamos, pandas termina cómodo dentro de la memoria del kernel de Colab y no paga ninguno de esos costos, por lo que gana en todos los casos.
+
+En cuanto al tamaño mínimo que justifica Spark, la literatura reporta que la ventaja de Spark frente a soluciones single-node como pandas empieza a hacerse visible cuando el dataset supera los pocos gigabytes o los varios millones de filas, y crece a partir de ahí~\cite{ahmed2020}. Aplicado al dominio BCEL, esto significa que mientras el microservicio Docente maneje volúmenes cercanos al medio millón de registros actuales, PostgreSQL con consultas SQL o incluso pandas sobre un dump siguen siendo alternativas razonables. La migración a Spark tendría sentido cuando el histórico acumule varios períodos académicos completos y los joins sobre asistencias y calificaciones lleguen al orden de decenas de millones de filas, momento en el cual la sobrecarga del motor deja de dominar y se aprovecha realmente el paralelismo.
 \subsection*{Pregunta 3}
 Spark Structured Streaming es la API de streaming de Apache Spark que trata un
 flujo de datos como una tabla que crece de forma continua, permitiendo aplicar
@@ -664,7 +667,10 @@ centralizado a un motor distribuido realmente vale la sobrecarga que implica
 adoptarlo.
 
 \subsection*{Pedro Castro}
-% TODO: mínimo 150 palabras.
+Trabajar esta práctica me sirvió sobre todo para bajar a tierra un concepto que hasta ahora había visto solo en teoría. Antes de PE-U4 tenía la idea de que Spark siempre era más rápido que pandas por el hecho de ser distribuido, y los resultados demostraron exactamente lo contrario: sobre el dataset OULAD, con 4 executors, las cinco transformaciones fueron más lentas en PySpark, con speedups que fueron desde 0.04 hasta 0.47. Esa diferencia no se explica por un error, se explica por el overhead fijo del motor (SparkSession, DAG, serialización y shuffle) que en volúmenes pequeños termina pesando más que el paralelismo.
+
+Lo que me llevo como aprendizaje concreto es que la decisión de usar o no un motor distribuido no es una cuestión de tecnología moderna, sino de volumen de datos y de la naturaleza de la operación. Aplicado al Proyecto Fin de Curso, el SGA de BCEL corre hoy sobre PostgreSQL en EC2 y tiene alrededor de 640.000 registros; con ese tamaño, meter Spark hoy sería contraproducente. Sin embargo, cuando el histórico crezca en varios períodos académicos y los reportes agregados sobre asistencias y calificaciones empiecen a impactar el rendimiento del portal, la migración a Amazon EMR va a tener sentido, y esta práctica me deja tanto los criterios como los números para decidir cuándo hacerla.
+
 
 % ======================================================
 % 8. DECLARACIÓN DE USO DE IA GENERATIVA
