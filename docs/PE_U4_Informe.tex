@@ -438,7 +438,20 @@ plan de ejecución en lugar de ejecutar operación por operación
 % TODO: mínimo 150 palabras.
 
 \subsection*{Juliana Emanuel}
-% TODO: mínimo 150 palabras.
+La verdad es que ver la Ley de Amdahl junta con la parte de MapReduce me
+ayudó bastante a entender por qué el límite del paralelismo no es solo un
+número teórico, sino que se conecta directo con decisiones de diseño
+reales. Por ejemplo, el hecho de que MapReduce tenga que escribir a disco
+entre cada fase agrega bastante trabajo serial extra en cada ciclo. Es
+justo por eso que Spark, al mantener los datos en memoria, logra tiempos
+mucho mejores.
+
+Además, calcular el speedup máximo con los datos que medimos en T3 me
+sirvió para comprender por qué el join es la operación donde más se nota
+esa limitación en la práctica. Durante el shuffle hay que mover un montón
+de datos entre executors, y eso definitivamente no se paraleliza tan bien
+como un filtro simple, donde cada nodo trabaja de forma independiente sin
+depender tanto del resto.
 
 \subsection*{Harol Vinueza}
 
