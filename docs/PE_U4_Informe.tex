@@ -262,16 +262,72 @@ resto de servicios AWS ya utilizados por el sistema.
 % 3. PROCEDIMIENTO APLICADO (Sección 7 de la guía, narrado)
 % ======================================================
 \section{Procedimiento aplicado}
-% TODO (Keyla) -- Commit 3
-% Narrar en prosa (no solo pegar código) los Pasos 1-4 realmente
-% ejecutados en el notebook: preparación del entorno y dataset,
-% implementación pandas, implementación PySpark (incluir aquí la
-% configuración efectiva de Spark obtenida con
-% spark.sparkContext.getConf().getAll()), y protocolo de medición.
+El experimento se ejecutó íntegramente en Google Colab, siguiendo los cuatro
+pasos definidos en la guía de la práctica.
+
+\textbf{Preparación del entorno y del dataset.} Se instaló PySpark 3.5.0
+mediante \texttt{!pip install pyspark==3.5.0} y se descargó el dataset OULAD
+desde la fuente oficial de The Open University
+(\url{http://schools.stem.open.ac.uk/cdn/files/anonymisedData.zip}). Se
+cargaron las tablas \texttt{studentVle} (10{,}655{,}280 registros),
+\texttt{studentInfo} (32{,}593 registros) y \texttt{vle} (6{,}364 registros)
+tanto en pandas como en un DataFrame de PySpark, verificando en ambos motores
+el número de registros y el esquema inferido antes de continuar.
+
+\textbf{Implementación secuencial con pandas.} Se implementaron las cinco
+transformaciones (T1: filtrado y selección; T2: agrupación con cuatro
+agregaciones; T3: join triple entre las tres tablas; T4: columna derivada de
+índice de riesgo académico; T5: top-20 por riesgo) ejecutando cada una en una
+celda independiente, sin reutilizar resultados intermedios entre
+transformaciones, y guardando la salida de cada una en \texttt{data/pandas/}.
+
+\textbf{Implementación distribuida con PySpark.} Se inicializó la
+\texttt{SparkSession} y se implementaron las mismas cinco transformaciones
+sobre DataFrames de PySpark. Para T3 se midió adicionalmente el efecto del
+paralelismo reiniciando la sesión con \texttt{master("local[N]")} para
+$N=1,2,4$, en lugar de utilizar \texttt{spark.executor.instances}: esta
+configuración es estática y, además, no controla paralelismo real en un
+entorno de una sola máquina como Colab, por lo que se optó por variar el
+número de núcleos locales asignados a la sesión.
+
+\textbf{Verificación de equivalencia (criterio 1.4).} Para cada una de las
+cinco transformaciones se comparó la cardinalidad del resultado entre pandas
+y PySpark, obteniendo coincidencia exacta en todos los casos:
+T1: 1{,}531{,}617 filas; T2: 29{,}228 filas; T3: 10{,}655{,}280 filas
+(coincidencia verificada además con un agregado de control, la suma total de
+\texttt{total\_clicks} en T2). T4 y T5 heredan la cardinalidad de T3 y del
+recorte \texttt{top-20}, respectivamente, por construcción de sus
+transformaciones.
+
+\textbf{Protocolo de medición.} Cada transformación se midió con
+\texttt{time.perf\_counter()} en cinco repeticiones, descartando
+explícitamente una ejecución de calentamiento previa, y reportando la
+mediana. En PySpark, cada medición forzó la materialización del plan de
+ejecución perezoso mediante la acción \texttt{count()}, evitando medir
+únicamente la construcción del DAG.
 
 \subsection{Entorno y conjunto de datos}
-% TODO (Keyla): tabla booktabs con fuente/URL/licencia/fecha/registros
-% (copiar de data/README_dataset.md)
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Campo} & \textbf{Valor} \\
+\midrule
+Fuente & The Open University (Reino Unido) \\
+URL de descarga & \url{http://schools.stem.open.ac.uk/cdn/files/anonymisedData.zip} \\
+Licencia & CC-BY 4.0 \\
+Fecha de descarga & \today \\
+Número de registros & 10{,}655{,}280 (\texttt{studentVle.csv}) \\
+Tablas utilizadas & \texttt{studentVle}, \texttt{studentInfo}, \texttt{vle} \\
+Plataforma & Google Colab (2 núcleos, sesión estándar) \\
+PySpark & 3.5.0 \\
+Python & 3.10+ \\
+\bottomrule
+\end{tabular}
+\caption{Documentación del conjunto de datos y del entorno de ejecución}
+\label{tab:dataset}
+\end{table}
 
 \subsection{Evidencia de ejecución: Spark UI}
 % TODO (Keyla): insertar aquí la captura de evidencia/spark_ui_t3.png
@@ -352,7 +408,53 @@ La Figura~\ref{fig:eficiencia} muestra que la eficiencia $E(N) = S(N)/N$ cae rá
 \section{Preguntas de análisis}
 
 \subsection*{Pregunta 1}
-% TODO (Keyla) -- Commit 3. Mínimo 200 palabras.
+Para calcular el speedup teórico máximo de T3 (join) se parte del speedup
+observado con $N=4$ núcleos, $S_{obs}(4) = 0.4675$, obtenido como
+$S = T_{pandas}/T_{PySpark} = 13.5601/28.4488$. Despejando la fracción
+serial observada $p$ mediante la Ecuación~\eqref{eq:fraccion-serial}
+(forma inversa de Karp-Flatt):
+
+\[
+p = \frac{\dfrac{1}{S_{obs}(N)} - \dfrac{1}{N}}{1 - \dfrac{1}{N}}
+  = \frac{\dfrac{1}{0.4675} - \dfrac{1}{4}}{1 - \dfrac{1}{4}}
+  = \frac{2.1390 - 0.25}{0.75}
+  = 2.5186
+\]
+
+Este resultado es matemáticamente inválido dentro del dominio del modelo de
+Amdahl, que exige $0 \leq p \leq 1$. Sustituyendo este valor en la
+Ecuación~\eqref{eq:amdahl} para obtener el speedup máximo cuando
+$N \to \infty$:
+
+\[
+S_{max} = \frac{1}{1-p} = \frac{1}{1-2.5186} = \frac{1}{-1.5186} = -0.6585
+\]
+
+El resultado negativo confirma que el modelo no es aplicable en este caso: la
+fórmula de Karp-Flatt asume implícitamente que el sistema distribuido es más
+rápido que el secuencial ($S \geq 1$); cuando esto no se cumple, como ocurrió
+en las cinco transformaciones de este experimento, el despeje algebraico
+produce valores de $p$ y $S_{max}$ fuera de su dominio físico válido. De la
+misma forma, el número de procesadores necesario para alcanzar el 90\% del
+speedup máximo, calculado despejando $N$ de
+$S(N) = 0.9 \cdot S_{max}$, resulta en $N_{90} = -14.93$, un valor sin
+interpretación física.
+
+La causa de este resultado no es un error de cálculo, sino una consecuencia
+directa de las condiciones del entorno de ejecución: Google Colab únicamente
+provee 2 núcleos reales, y el dataset, aunque de gran volumen
+(10{,}655{,}280 registros), aún cabe cómodamente en la memoria disponible
+para pandas. En estas condiciones, el costo fijo de inicializar la sesión de
+Spark, planificar el DAG y coordinar el \textit{shuffle} entre particiones
+domina por completo el tiempo total de ejecución, superando cualquier
+beneficio que el paralelismo pudiera aportar. Como advierte la guía de esta
+práctica, la magnitud despejada mediante la forma inversa de Amdahl en un
+escenario como este no debe confundirse con la fracción serial algorítmica
+del problema, sino que corresponde a la fracción no escalable observada, que
+agrega la sobrecarga real de planificación y coordinación del motor
+distribuido. El hallazgo relevante para el dominio BCEL es, por tanto, que
+Spark no resulta rentable a esta escala de datos y de recursos
+computacionales.
 
 \subsection*{Pregunta 2}
 % TODO (Pedro) -- Commit 2. Mínimo 200 palabras.
@@ -458,7 +560,26 @@ plan de ejecución en lugar de ejecutar operación por operación
 \section{Conclusiones individuales}
 
 \subsection*{Keyla Bedón}
-% TODO: mínimo 150 palabras.
+Esta práctica me permitió entender la Ley de Amdahl no como una fórmula
+abstracta, sino como una herramienta que realmente predice cuándo vale la
+pena (o no) invertir en paralelismo. Lo más revelador fue justamente lo
+contrario de lo que esperaba: en lugar de ver a Spark superar a pandas, medí
+en las cinco transformaciones que pandas fue más rápido, y tuve que entender
+por qué --- el overhead de inicializar Spark, planificar el DAG y coordinar
+el shuffle entre solo 2 núcleos, sobre un dataset que aún cabe en memoria,
+termina pesando más que cualquier beneficio del paralelismo. Ejecutar el
+notebook también me enfrentó a problemas reales de ingeniería que no
+aparecen en la teoría: sesiones de Spark que se caían por falta de memoria al
+reiniciarlas varias veces, la imposibilidad de modificar
+\texttt{spark.executor.instances} sobre una sesión ya activa, y la necesidad
+de usar \texttt{local[N]} para simular escalado real en un entorno de una
+sola máquina como Colab. Conectar esto con BCEL --- específicamente con el
+microservicio Docente, que hoy opera con un volumen de datos modesto sobre
+una sola instancia de PostgreSQL --- me deja una intuición mucho más clara
+de que adoptar un motor distribuido no es una decisión que se tome solo por
+tener datos grandes, sino que depende también de los recursos de cómputo
+disponibles y del punto exacto en que el overhead de coordinación deja de
+superar la ganancia del paralelismo.
 
 \subsection*{Juliana Emanuel}
 La verdad es que ver la Ley de Amdahl junta con la parte de MapReduce me
