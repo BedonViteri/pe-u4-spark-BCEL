@@ -298,7 +298,48 @@ resto de servicios AWS ya utilizados por el sistema.
 % TODO (Pedro) -- Commit 2. Mínimo 200 palabras.
 
 \subsection*{Pregunta 4}
-% TODO (Harol) -- Commit 3. Mínimo 200 palabras.
+
+Spark supera a MapReduce en cargas de trabajo iterativas principalmente por
+dos decisiones de diseño: el modelo de \textit{lineage} de los RDD y la
+evaluación perezosa. MapReduce materializa el resultado de cada fase Map y
+Reduce escribiéndolo en el sistema de archivos distribuido (HDFS) antes de
+iniciar la siguiente fase. En un algoritmo iterativo, como los usados en
+aprendizaje automático o en el cálculo de PageRank, esto obliga a leer y
+escribir el mismo conjunto de datos desde disco en cada iteración, generando
+una sobrecarga de E/S que domina el tiempo total de ejecución y que crece
+linealmente con el número de iteraciones \cite{zaharia2012}.
+
+Spark evita este cuello de botella manteniendo los datos en memoria entre
+operaciones sucesivas mediante los RDD. La tolerancia a fallos de este
+modelo no depende de replicar físicamente los datos en disco, sino del
+\textit{lineage}: cada RDD conserva el grafo de transformaciones que lo
+originó a partir de la fuente de datos. Si un executor falla y se pierde una
+partición, Spark no necesita releer todo el conjunto de datos desde el
+almacenamiento estable; simplemente recalcula, a partir del lineage, solo la
+porción perdida, lo cual resulta considerablemente más barato que la
+tolerancia a fallos basada en replicación de MapReduce \cite{zaharia2012}.
+Esto permite que un algoritmo iterativo reutilice el mismo RDD en memoria a
+través de sucesivas iteraciones sin pagar el costo de E/S en cada una.
+
+La evaluación perezosa complementa esta ventaja desde el plano de la
+planificación. Spark no ejecuta las transformaciones (\texttt{map},
+\texttt{filter}, \texttt{join}, etc.) en el momento en que se declaran en el
+código; en su lugar, construye un plan lógico que solo se materializa cuando
+se invoca una acción (\texttt{count}, \texttt{collect}, \texttt{saveAsTextFile}).
+Esto le permite al motor observar la cadena completa de operaciones antes de
+ejecutar nada, y optimizarla como un todo: puede fusionar transformaciones
+consecutivas en una sola pasada sobre los datos, eliminar cómputo redundante
+y decidir el punto óptimo para persistir en memoria un RDD que se reutilizará
+en varias iteraciones, en lugar de ejecutar cada operación de forma aislada e
+inmediata como ocurre en el modelo rígido de fases de MapReduce
+\cite{zaharia2016}.
+
+En conjunto, ambos mecanismos explican por qué Spark reporta mejoras de
+rendimiento de un orden de magnitud o más frente a MapReduce en cargas
+iterativas: el lineage reduce el costo de la tolerancia a fallos sin recurrir
+a E/S constante, y la evaluación perezosa permite optimizar globalmente el
+plan de ejecución en lugar de ejecutar operación por operación
+\cite{zaharia2016}.
 
 % ======================================================
 % 7. CONCLUSIONES INDIVIDUALES
