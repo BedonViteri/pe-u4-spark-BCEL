@@ -86,8 +86,56 @@ Keyla Bedón \and Juliana Emanuel \and Harol Vinueza \and Pedro Castro \\
 
 \subsection{Apache Spark: arquitectura y modelo de programación}
 \label{sec:spark}
-% TODO (Harol) -- Commit 1
-% Mínimo 300 palabras.
+
+Apache Spark es un motor de procesamiento distribuido en memoria diseñado para
+superar las limitaciones de MapReduce en cargas de trabajo iterativas
+\cite{zaharia2012}. Su arquitectura se organiza en tres componentes principales:
+el \textit{driver}, proceso que ejecuta la función \texttt{main} de la
+aplicación, construye el grafo de operaciones y coordina el trabajo; el
+\textit{cluster manager} (YARN, Kubernetes o el gestor \textit{standalone} de
+Spark), responsable de asignar recursos físicos a la aplicación; y los
+\textit{executors}, procesos distribuidos en los nodos del clúster que ejecutan
+las tareas y almacenan los datos en memoria o disco según se requiera
+\cite{chambers2018}.
+
+El modelo de datos fundamental de Spark es el RDD (\textit{Resilient
+Distributed Dataset}), una colección inmutable y particionada de objetos que
+se distribuye entre los nodos del clúster. La tolerancia a fallos de los RDD no
+se basa en replicación física de los datos, sino en el \textit{lineage}: cada
+RDD conserva el registro de las transformaciones que lo generaron a partir de
+su fuente original, de modo que, si una partición se pierde por la falla de un
+nodo, Spark puede reconstruirla recalculando únicamente esa porción del linaje,
+sin necesidad de releer todo el conjunto de datos desde el almacenamiento
+estable \cite{zaharia2012}. Sobre los RDD se construyó posteriormente la API de
+\textit{DataFrames} y \textit{Datasets}, que añade un esquema tabular explícito
+y permite que el optimizador Catalyst reorganice las operaciones antes de
+ejecutarlas \cite{armbrust2015}; esta es la razón por la cual las
+transformaciones sobre un DataFrame no se ejecutan necesariamente en el orden
+exacto en que se escriben en el código.
+
+Spark distingue entre \textit{transformaciones} (operaciones como
+\texttt{filter}, \texttt{groupBy} o \texttt{join}, que son perezosas y solo
+construyen un plan lógico) y \textit{acciones} (como \texttt{count} o
+\texttt{collect}, que disparan la ejecución real). Esta evaluación perezosa
+permite que el motor optimice el plan completo antes de correrlo, en lugar de
+ejecutar cada paso de forma aislada. Al invocarse una acción, Spark traduce el
+plan lógico en un DAG (grafo acíclico dirigido) de \textit{stages}, cada uno
+compuesto por \textit{tasks} que se ejecutan en paralelo sobre las particiones
+de datos; los límites entre stages están marcados por operaciones de
+\textit{shuffle}, como las requeridas en un \texttt{join} o un
+\texttt{groupBy} con reparto de claves \cite{chambers2018}.
+
+Frente a MapReduce, Spark evita escribir los resultados intermedios a disco
+entre cada fase, manteniéndolos en memoria siempre que es posible, lo que
+reduce drásticamente la latencia en algoritmos que iteran múltiples veces
+sobre el mismo conjunto de datos \cite{zaharia2012}. En el contexto del
+dominio BCEL, esta arquitectura resulta directamente aplicable al
+procesamiento del histórico de asistencias y calificaciones del microservicio
+Docente: operaciones como el \texttt{join} entre la tabla de calificaciones y
+la de matrículas (T3 de esta práctica) se benefician tanto del particionamiento
+distribuido de los DataFrames como de la posibilidad de reejecutar únicamente
+las tareas afectadas ante un fallo parcial del clúster, sin reprocesar el
+conjunto completo.
 
 \subsection{Computación en la nube: modelos y proveedores}
 \label{sec:cloud}
