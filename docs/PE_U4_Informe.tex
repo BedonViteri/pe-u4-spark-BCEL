@@ -75,9 +75,58 @@ Keyla Bedón \and Juliana Emanuel \and Harol Vinueza \and Pedro Castro \\
 
 \subsection{Fundamentos de paralelismo y Ley de Amdahl}
 \label{sec:amdahl}
-% TODO (Juliana) -- Commit 1
-% Mínimo 300 palabras. Ver Guia_Juliana.md para el contenido completo
-% y las ecuaciones numeradas listas para copiar.
+El paralelismo consiste en dividir una carga de trabajo entre múltiples
+unidades de procesamiento que se ejecutan simultáneamente, con el objetivo de
+reducir el tiempo total de ejecución respecto a una ejecución estrictamente
+secuencial. Sin embargo, no todo programa es paralelizable en su totalidad:
+casi siempre existe una fracción serial --- inicialización, sincronización,
+agregación de resultados parciales --- que debe ejecutarse en un único
+procesador y que limita la ganancia obtenible al agregar más recursos.
+
+Gene Amdahl formalizó este límite en 1967 mediante lo que hoy se conoce como
+la Ley de Amdahl \cite{amdahl1967}. Si $p$ representa la fracción del
+programa que puede paralelizarse y $(1-p)$ la fracción estrictamente serial,
+el speedup teórico $S(N)$ obtenido al distribuir el trabajo entre $N$
+procesadores está dado por:
+
+\begin{equation}
+S(N) = \frac{1}{(1-p) + \dfrac{p}{N}}
+\label{eq:amdahl}
+\end{equation}
+
+La implicación central de la Ecuación~\ref{eq:amdahl} es que, cuando
+$N \to \infty$, el speedup converge a un límite superior fijo:
+$S(\infty) = 1/(1-p)$, determinado únicamente por la fracción serial. Por
+ejemplo, si solo el 10\% de un programa es estrictamente secuencial
+($1-p = 0.1$), el speedup máximo alcanzable, sin importar cuántos
+procesadores se agreguen, es de 10x. Esta ley es la base teórica que se
+utiliza en la Sección de Resultados de este informe para contrastar el
+speedup experimental obtenido con PySpark frente al máximo teórico permitido
+por la fracción serial observada en cada transformación.
+
+En 1988, John Gustafson propuso una reformulación complementaria de este
+problema \cite{gustafson1988}. Mientras Amdahl asume un tamaño de problema
+fijo y pregunta cuánto se puede acelerar, Gustafson observa que, en la
+práctica, al disponer de más procesadores se suele aumentar
+proporcionalmente el tamaño del problema (más datos, mayor precisión), no
+mantenerlo constante. Bajo esta óptica de \textit{escalado} en lugar de
+\textit{tamaño fijo}, el speedup escalado se expresa como:
+
+\begin{equation}
+S(N) = N - (1-p)(N-1)
+\label{eq:gustafson}
+\end{equation}
+
+A diferencia de la Ecuación~\ref{eq:amdahl}, la Ecuación~\ref{eq:gustafson}
+crece linealmente con $N$ y no está acotada por un límite fijo, porque el
+trabajo total escala junto con los recursos disponibles. Ambas leyes no son
+contradictorias, sino que responden preguntas distintas: Amdahl es más
+relevante cuando el volumen de datos de un microservicio como el módulo
+Docente de BCEL permanece relativamente estable y se busca reducir la
+latencia de un mismo cómputo; Gustafson es más relevante cuando el volumen de
+datos crece junto con la infraestructura disponible, como ocurriría si el
+histórico de calificaciones y asistencias de BCEL se expandiera con cada
+nuevo período académico.
 
 \subsection{Paradigma MapReduce y Apache Hadoop}
 \label{sec:mapreduce}
